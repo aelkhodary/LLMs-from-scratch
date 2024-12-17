@@ -1,6 +1,39 @@
 # Chapter 1: Understanding Large Language Models
 
 
+
+## Setting up your environment
+
+To get started, you'll need to create a virtual environment and install the necessary packages.  Here's how:
+
+1. **Create a virtual environment:**
+
+   ```bash
+   python3 -m venv .venv
+   ```
+
+2. **Activate the virtual environment:**
+
+   * **Linux/macOS:**
+     ```bash
+     source .venv/bin/activate
+     ```
+
+   * **Windows:**
+     ```bash
+     .venv\Scripts\activate
+     ```
+
+3. **Install packages:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+Remember to activate your virtual environment before running any code.  To deactivate, type `deactivate`.
+
+
+
 &nbsp;
 ## Main Chapter Code
 
