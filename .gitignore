@@ -275,3 +275,11 @@ cython_debug/
 
 # vscode
 .vscode/
+/a/
+/virtual
+/Creates
+/named
+/enviroment
+/pyvenv.cfg
+/bin
+
