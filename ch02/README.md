@@ -271,3 +271,53 @@ Teach how to implement the data pipeline for stage 1 of building an LLM, includi
    - BPE tokenization ensures robust handling of any text, even words absent in the training data, by decomposing them into smaller, known units.
    - This approach allows LLMs to generalize better and efficiently handle unseen vocabulary.
 
+
+# 2.6 Data sampling with a sliding window
+
+# Start Generation Here
+### Key Points: Generating Input-Target Pairs for LLM Training
+
+1. **Goal:**
+   - Create input–target pairs for training the LLM using a next-word prediction task.
+   - Inputs are a block of tokens, and targets are the next token in sequence.
+
+2. **Input-Target Pair Example:**
+   - For context size = 4:
+     - Input (x): [290, 4920, 2241, 287]
+     - Target (y): [4920, 2241, 287, 257]
+
+3. **Next-Word Prediction:**
+   - Each input token predicts the token shifted by one position.
+
+4. **Sliding Window Approach:**
+   - A sliding window moves across the dataset to generate overlapping input-target pairs.
+   - **Stride:** Controls how far the window shifts.
+     - Stride = 1: Overlapping inputs.
+     - Stride = context size: Non-overlapping inputs.
+
+5. **Efficient Data Loading with PyTorch:**
+   - A custom dataset class (`GPTDatasetV1`) generates input-target pairs:
+     - Inputs: Sequences of token IDs.
+     - Targets: Shifted token IDs (next-word predictions).
+   - **DataLoader:** Fetches input-target pairs in batches.
+
+6. **Batch Processing:**
+   - Tensors are created for both inputs and targets.
+   - Example for batch size = 8:
+     - Inputs: 8 rows of token sequences (e.g., 4 tokens each).
+     - Targets: Corresponding next-word tokens for each row.
+
+7. **Avoiding Overfitting:**
+   - Stride settings help balance between:
+     - Overlapping batches (stride = small value).
+     - Non-overlapping batches (stride = context size).
+
+8. **Tradeoffs and Hyperparameters:**
+   - Batch size: Small batches use less memory but result in noisier updates during training.
+   - Experimenting with parameters like context size, stride, and batch size helps optimize training.
+
+9. **Key Code Features:**
+   - Custom PyTorch Dataset and DataLoader handle large text datasets efficiently.
+   - Generates batches of inputs and targets that can be directly used for LLM training.
+   - This method ensures the model gets sufficient training examples while efficiently managing data using PyTorch’s capabilities.
+# End Generation Here
