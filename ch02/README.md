@@ -320,4 +320,151 @@ Teach how to implement the data pipeline for stage 1 of building an LLM, includi
    - Custom PyTorch Dataset and DataLoader handle large text datasets efficiently.
    - Generates batches of inputs and targets that can be directly used for LLM training.
    - This method ensures the model gets sufficient training examples while efficiently managing data using PyTorch’s capabilities.
-# End Generation Here
+
+
+
+# 2.7 Creating token embeddings
+
+### Key Points: Creating Token Embeddings for LLM Training
+
+
+![LLM10](/llm10.png)
+
+1. **Purpose of Embeddings:**
+   - Convert token IDs (integers) into continuous embedding vectors required for training LLMs.
+   - These embeddings allow the neural network to process data mathematically.
+
+2. **Embedding Layer Basics:**
+   - Embeddings are initialized with random values as a starting point for training.
+   - The embedding layer is a neural network layer that maps token IDs to their corresponding vectors.
+   - Embeddings are optimized during training using backpropagation.
+
+3. **Embedding Dimensions and Vocabulary:**
+   - Example:
+     - Vocabulary size = 6 tokens.
+     - Embedding size = 3 dimensions (GPT-3 uses 12,288 dimensions).
+   - The embedding layer weight matrix:
+     - Rows = tokens in the vocabulary.
+     - Columns = embedding dimensions.
+
+4. **Example Workflow:**
+   - Input Token IDs: [2, 3, 5, 1].
+   - Weight Matrix (6×3): Randomly initialized with 6 rows (tokens) and 3 columns (embedding dimensions).
+
+5. **Lookup Operation:**
+   - For token ID 3, the embedding vector is the 4th row of the weight matrix (Python indexing starts at 0).
+![LLM11](/llm11.png)
+6. **Resulting Embedding Matrix:**
+   - For input IDs [2, 3, 5, 1], the output is a 4×3 embedding matrix:
+     ```
+     [[ 1.2753, -0.2010, -0.1606],
+      [-0.4015,  0.9666, -1.1481],
+      [-2.8400, -0.7849, -1.4096],
+      [ 0.9178,  1.5810,  1.3010]]
+     ```
+7. **Efficient Lookup:**
+   - The embedding layer is a more efficient implementation of one-hot encoding followed by matrix multiplication.
+   - It retrieves rows directly from the weight matrix corresponding to the token IDs.
+
+8. **Next Step:**
+   - Enhance embeddings with positional information to capture a token's position in the sequence.
+   - By converting token IDs into embeddings, the model gains a continuous representation of text, enabling it to learn relationships between tokens effectively during training.
+
+
+# 2.8 **Encoding word positions**
+
+## Key Points: Encoding Word Positions for LLMs
+
+1. **Why Positional Embeddings Are Needed:**
+   - **LLM's Limitation:** Token embeddings alone do not convey the position of tokens in a sequence.
+   - **Self-Attention:** LLM's self-attention mechanism is position-agnostic, so positional information is added to make models aware of token order.
+
+![Image](/llm12.png)
+
+2. **Types of Positional Embeddings:**
+   - **Absolute Positional Embeddings:**
+     - Assigns a unique embedding for each position in the sequence.
+     - For example, the 1st, 2nd, and 3rd tokens get unique positional vectors added to their token embeddings.
+     
+   - **Relative Positional Embeddings:**
+     - Encodes the relative distance between tokens instead of their absolute positions.
+     - Better for generalizing across sequences of varying lengths.
+
+3. **How Positional Embeddings Work:**
+   - Positional vectors have the same dimensions as token embeddings (e.g., 256 or 12,288 for GPT-3).
+   - **Combined Input:** Positional embeddings are added to token embeddings to form input embeddings, which include both token identity and position information.
+
+4. **Example Workflow:**
+   - **Token Embedding:**
+     - Input token IDs: [[40, 367, 2885, 1464], [1807, 3619, 402, 271]].
+     - Token embeddings: 8 × 4 × 256 tensor (batch of 8 samples, 4 tokens per sample, 256 dimensions per token).
+     
+   - **Positional Embedding:**
+     - Created using a placeholder like `torch.arange(context_length)`.
+     - Result: 4 × 256 tensor (one vector for each position in the sequence).
+     
+   - **Combined Input Embedding:**
+     - Add positional embeddings to token embeddings: 8 × 4 × 256.
+
+5. **PyTorch Implementation:**
+   - **Define token embedding layer:**
+     ```python
+     token_embedding_layer = torch.nn.Embedding(vocab_size, output_dim)
+     token_embeddings = token_embedding_layer(inputs)
+     ```
+   - **Define positional embedding layer:**
+     ```python
+     pos_embedding_layer = torch.nn.Embedding(context_length, output_dim)
+     pos_embeddings = pos_embedding_layer(torch.arange(context_length))
+     ```
+   - **Combine embeddings:**
+     ```python
+     input_embeddings = token_embeddings + pos_embeddings
+     ```
+![Image](/llm13.png)
+6. **Final Input Embeddings:**
+   - Shape: `torch.Size([8, 4, 256])` (batch size: 8, sequence length: 4, embedding dimensions: 256).
+   - These input embeddings can now be processed by the main LLM layers.
+
+7. **Practical Notes:**
+   - **Truncation:** If input text exceeds the maximum context length, it must be truncated.
+   - **Batch Processing:** Positional embeddings are applied to each batch in parallel.
+
+8. **Summary of Input Processing Pipeline:**
+   - Tokenize text → Map tokens to IDs → Convert token IDs to embeddings → Add positional embeddings → Form input embeddings for the LLM.
+   - This step ensures LLMs can capture both token identity and sequence order for more context-aware predictions.
+
+
+
+# **Importance of Word Position Encoding in LLMs:**
+  Importance of Word Position Encoding in LLMs
+Adds Sequence Awareness:
+
+1. Helps LLMs understand the order of words in a sentence, which is crucial for capturing meaning (e.g., "cat chased mouse" vs. "mouse chased cat").
+2. Enhances Context Understanding:
+   - Improves the model’s ability to grasp relationships between words by combining token identity with their positions.
+3. Improves Predictions:
+   - Ensures accurate next-word prediction or text generation by respecting the logical flow of the input sequence.
+4. Handles Long Texts:
+   - Maintains coherence and structure in longer sequences by providing positional reference.
+5. Supports Various Applications:
+   - Crucial for tasks like translation, summarization, and question answering, where word order defines the meaning.
+Key Takeaway:
+Word position encoding ensures LLMs respect the structure of language, improving their ability to understand and generate coherent, contextually accurate text.   
+- **Key Takeaway:** Word position encoding ensures LLMs respect the structure of language, improving their ability to understand and generate coherent, contextually accurate text.   
+
+# **Summary**
+    1. LLMs require textual data to be converted into numerical vectors, known as embeddings, since they can’t process raw text. Embeddings transform discrete data (like words or images) into continuous vector spaces, making them compatible with neural network operations.
+
+    2. As the first step, raw text is broken into tokens, which can be words or characters. Then, the tokens are converted into integer representations, termed token IDs.
+
+    3. Special tokens, such as `<|unk|>` and `<|endoftext|>`, can be added to enhance the model’s understanding and handle various contexts, such as unknown words or marking the boundary between unrelated texts.
+    4. The byte pair encoding (BPE) tokenizer used for LLMs like GPT-2 and GPT-3 can efficiently handle unknown words by breaking them down into subword units or individual characters.
+
+    5. We use a sliding window approach on tokenized data to generate input–target pairs for LLM training.
+
+    6. Embedding layers in PyTorch function as a lookup operation, retrieving vectors corresponding to token IDs. The resulting embedding vectors provide continuous representations of tokens, which is crucial for training deep learning models like LLMs.
+
+    7. While token embeddings provide consistent vector representations for each token, they lack a sense of the token’s position in a sequence. To rectify this, two main types of positional embeddings exist: absolute and relative. OpenAI’s GPT models utilize absolute positional embeddings, which are added to the token embedding vectors and are optimized during the model training.
+
+
